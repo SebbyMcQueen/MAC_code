@@ -43,11 +43,11 @@ void runPumpForScore(int score) {
   
   currentScore = score;
   
-  // Map score (0-100) to pump speed (0-255)
-  pumpSpeed = map(score, 0, 100, 0, 255);
+  // Always use 40% intensity (40% of 255 = 102)
+  pumpSpeed = 102;
   
-  // Calculate duration: score 100 = 5 seconds, score 0 = 0 seconds
-  pumpDuration = map(score, 0, 100, 0, 5000);
+  // Calculate duration: score 100 = 10 seconds, proportionally less for lower scores
+  pumpDuration = map(score, 0, 100, 0, 10000);
   
   if (score > 0) {
     setMotor(false, pumpSpeed);  // false = counterclockwise (dispense)
@@ -57,9 +57,9 @@ void runPumpForScore(int score) {
     
     Serial.print("Score: ");
     Serial.print(score);
-    Serial.print(" | Speed: ");
+    Serial.print("% | Speed: 40% (");
     Serial.print(pumpSpeed);
-    Serial.print("/255 | Duration: ");
+    Serial.print("/255) | Duration: ");
     Serial.print(pumpDuration);
     Serial.println("ms");
   } else {
