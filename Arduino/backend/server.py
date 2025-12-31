@@ -20,17 +20,22 @@ def get_serial_connection():
         try:
             ser = serial.Serial(ARDUINO_PORT, BAUD_RATE, timeout=1)
             time.sleep(2)  # Wait for Arduino to reset
-            print(f"✓ Connected to Arduino on {ARDUINO_PORT}")
+            print(f"[OK] Connected to Arduino on {ARDUINO_PORT}")
             # Read startup message
             while ser.in_waiting > 0:
                 line = ser.readline().decode('utf-8', errors='ignore').strip()
                 if line:
                     print(f"Arduino: {line}")
         except serial.SerialException as e:
-            print(f"✗ Error opening serial port {ARDUINO_PORT}: {e}")
+            print(f"[WARNING] Could not open serial port {ARDUINO_PORT}: {e}")
             print("\nAvailable ports:")
-            for port in serial.tools.list_ports.comports():
-                print(f"  - {port.device}: {port.description}")
+            ports = list(serial.tools.list_ports.comports())
+            if ports:
+                for port in ports:
+                    print(f"  - {port.device}: {port.description}")
+            else:
+                print("  No serial ports found")
+            print("\n[INFO] Server will start without Arduino connection")
             return None
     return ser
 
@@ -169,9 +174,14 @@ if __name__ == '__main__':
     print("  GET  /api/ports          - List available ports")
     print("="*50)
     
-    # Test Arduino connection on startup
-    get_serial_connection()
+    # Test Arduino connection on startup (non-fatal if it fails)
+    print("\nTesting Arduino connection...")
+    if get_serial_connection():
+        print("[OK] Arduino is ready")
+    else:
+        print("[WARNING] Arduino not connected - valve control will not work")
     
+    print("\nStarting Flask server...")
     try:
         app.run(debug=False, host='0.0.0.0', port=5000)
     except KeyboardInterrupt:
